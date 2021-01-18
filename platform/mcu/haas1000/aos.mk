@@ -106,6 +106,10 @@ endif
 $(NAME)_SOURCES += drivers/utils/boot_struct/boot_struct.c \
 				drivers/utils/build_info/build_info.c
 
+ifeq ($(A7_DSP_ENABLE), 1)
+$(NAME)_SOURCES += hal/audio.c
+endif
+
 HW_MODULE ?= 0
 ifeq ($(HW_MODULE), 1)
 GLOBAL_DEFINES += CFG_HW_ALI_MODULE
