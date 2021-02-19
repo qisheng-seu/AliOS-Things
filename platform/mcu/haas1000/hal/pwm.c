@@ -24,7 +24,7 @@ typedef struct {
 	struct HAL_PWM_CFG_T pwm_cfg;
 } _HAL_PWM_PRIV_T;
 
-static int inited = 0;
+static int inited[_HAL_PWM_MAX_NUM] = {0};
 
 static enum HAL_PWM_ID_T __hal_pwm_port2chan(uint8_t port)
 {
@@ -53,18 +53,17 @@ int32_t hal_pwm_init(pwm_dev_t *pwm)
 		printf("%s priv=%p, SHOULD be NULL!\n", __FUNCTION__, pwm->priv);
 		return -1;
 	}
-	if (inited == 0) {
-		hal_iomux_init(&pinmux_pwm, sizeof(pinmux_pwm)/sizeof(struct HAL_IOMUX_PIN_FUNCTION_MAP));
-		for (int i=0; i<_HAL_PWM_MAX_NUM; i++) {
-			hal_gpio_pin_set_dir(pinmux_pwm[i].pin, HAL_GPIO_DIR_OUT, 1);
-		}
+	if (inited[pwm->port] == 0) {
+		hal_iomux_init(&pinmux_pwm[pwm->port], 1);
+		hal_gpio_pin_set_dir(pinmux_pwm[pwm->port].pin, HAL_GPIO_DIR_OUT, 1);
+		// }
 		//init pmu pwm
 		//pmu_write(0x2b, 0xce89);
 		//pmu_write(0x30, 0x560c);
 		//pmu_write(0x2f, 0x0000);
 
 		hal_pwm_set_ratio_max(1000);
-		inited = 1;
+		inited[pwm->port] = 1;
 	}
 	_HAL_PWM_PRIV_T *_cfg = malloc(sizeof(_HAL_PWM_PRIV_T));
 	_cfg->chan = __hal_pwm_port2chan(pwm->port);
@@ -155,58 +154,3 @@ int32_t hal_pwm_finalize(pwm_dev_t *pwm)
 	return 0;
 }
 
-void _hal_pwm_test(void)
-{
-	pwm_dev_t pwm = {0, {0.0, 250}, NULL};
-	for (int k=0; k<_HAL_PWM_MAX_NUM; k++) {
-		pwm.port = k;
-		hal_pwm_init(&pwm);
-		hal_pwm_start(&pwm);
-		pwm_config_t para = {0.0, 250};
-		for (int j=0; j<3; j++) {
-			for (int i=0; i<100; i++) {
-				para.duty_cycle = 0.01*i;
-				hal_pwm_para_chg(&pwm, para);
-				osDelay(200);
-			}
-			for (int i=10; i>0; i--) {
-				para.duty_cycle = 0.01*i;
-				hal_pwm_para_chg(&pwm, para);
-				osDelay(200);
-			}
-		}
-		hal_pwm_stop(&pwm);
-		hal_pwm_finalize(&pwm);
-	}
-}
-
-void _hal_pwm_test_arg(int port, int duty_cycle)
-{
-    int ret = 0;
-
-	pwm_dev_t pwm = {0, {0.0, 1000}, NULL};
-
-    if((port > 3)||(port < 0))
-    {
-        printf("the port number is error, pls re-enter it[range:0-3]\n");
-        return;
-    }
-
-    if((duty_cycle > 10)||(duty_cycle < 0))
-    {
-        printf("duty_cycle is error, pls re-enter it[range:1-10]\n");
-        return;
-    }
-
-    pwm.port = port;
-    hal_pwm_init(&pwm);
-    hal_pwm_start(&pwm);
-    pwm_config_t para = {0.0, 1000};
-
-    para.duty_cycle = 0.1*duty_cycle;
-    hal_pwm_para_chg(&pwm, para);
-    osDelay(2000);
-
-    hal_pwm_stop(&pwm);
-    hal_pwm_finalize(&pwm);
-}
