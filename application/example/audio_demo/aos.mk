@@ -6,7 +6,7 @@ $(NAME)_SUMMARY := audio_demo
 
 $(NAME)_INCLUDES += ./
 $(NAME)_SOURCES :=   app_entry.c maintask.c audio_demo.c
-$(NAME)_COMPONENTS += libiot_devmodel libiot_dynreg iobox littlefs fatfs uvoice
+$(NAME)_COMPONENTS += libiot_devmodel libiot_dynreg littlefs fatfs uvoice
 
 $(NAME)_COMPONENTS += netmgr cjson network
 
@@ -58,8 +58,7 @@ uvoice_http_enable ?= 1
 uvoice_https_enable ?= 1
 uvoice_event_enable ?= 1
 dec_pvmp3_enable ?= 1
-dec_faad2aac_enable ?= 1
-dec_faad2m4a_enable ?= 1
+dec_pvaac_enable ?= 1
 
 A7_DSP_ENABLE := 1
 GLOBAL_DEFINES += HAAS_AUDIO_DEMO
